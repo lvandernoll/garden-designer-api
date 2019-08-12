@@ -30,8 +30,7 @@ class GardenController(private val gardenRepository: GardenRepository) {
     fun update(@PathVariable(value = "id") gardenId: Long,
                @Valid @RequestBody newGarden: Garden): ResponseEntity<Garden> =
         gardenRepository.findById(gardenId).map { existingGarden ->
-            val updatedGarden: Garden = existingGarden
-                .copy(map_coords = newGarden.map_coords)
+            val updatedGarden: Garden = existingGarden.copy(map_coords = newGarden.map_coords)
             ResponseEntity.ok().body(gardenRepository.save(updatedGarden))
         }.orElse(ResponseEntity.notFound().build())
 
