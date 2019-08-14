@@ -9,7 +9,7 @@ import javax.validation.constraints.NotBlank
 @Entity
 data class Item (
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
 
     @get: NotBlank
