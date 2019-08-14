@@ -4,7 +4,6 @@ import javax.persistence.Entity
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
 import javax.persistence.ManyToOne
-import javax.persistence.MapsId
 import javax.persistence.Id
 import javax.persistence.JoinColumn
 import javax.validation.constraints.NotNull
@@ -34,10 +33,30 @@ data class ItemGardenPlacement (
 )
 
 class CreateItemGardenPlacement(
+    @get: NotNull
     val item_id: Long,
+
+    @get: NotNull
     val garden_id: Long,
+
+    @get: NotNull
     val x: Int,
+
+    @get: NotNull
     val y: Int,
+
+    @get: NotNull
+    val rotation: Int
+)
+
+class UpdateItemGardenPlacement(
+    @get: NotNull
+    val x: Int,
+
+    @get: NotNull
+    val y: Int,
+
+    @get: NotNull
     val rotation: Int
 )
 

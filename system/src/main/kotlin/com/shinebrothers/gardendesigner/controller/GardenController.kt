@@ -26,7 +26,7 @@ class GardenController(private val gardenRepository: GardenRepository) {
 
     @GetMapping("/gardens/{id}")
     fun get(@PathVariable(value = "id") gardenId: Long): ResponseEntity<Map<String, Any>> =
-        gardenRepository.findById(gardenId).map {
+        gardenRepository.findById(gardenId).map { it ->
             val items: List<PartialItemGardenPlacement> = it.items.map {
                 PartialItemGardenPlacement(
                     id = it.id,
