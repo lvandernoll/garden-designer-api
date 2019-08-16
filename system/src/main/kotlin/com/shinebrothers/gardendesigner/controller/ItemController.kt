@@ -1,24 +1,31 @@
 package com.shinebrothers.gardendesigner.controller
 
 import com.shinebrothers.gardendesigner.model.Item
+import com.shinebrothers.gardendesigner.model.PutItem
 import com.shinebrothers.gardendesigner.repository.ItemRepository
+import com.shinebrothers.gardendesigner.repository.ItemTypeRepository
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.util.*
 import javax.validation.Valid
 
 @RestController
 @RequestMapping("/api")
-class ItemController(private val itemRepository: ItemRepository) {
+class ItemController(private val itemRepository: ItemRepository, private val typeRepository: ItemTypeRepository) {
 
     @GetMapping("/items")
     fun all(): List<Item> =
         itemRepository.findAll()
 
     @PostMapping("/items")
-    fun create(@Valid @RequestBody item: Item): Item =
-        itemRepository.save(item)
+    fun create(@Valid @RequestBody createItem: PutItem): ResponseEntity<Item> {
+        val type = typeRepository.findByIdOrNull(createItem.type_id) ?: return ResponseEntity.notFound().build()
+        return ResponseEntity.ok().body(itemRepository.save(Item(
+            name = createItem.name,
+            type = type
+        )))
+    }
 
     @GetMapping("/items/{id}")
     fun get(@PathVariable(value = "id") itemId: Long): ResponseEntity<Item> =
@@ -28,11 +35,14 @@ class ItemController(private val itemRepository: ItemRepository) {
 
     @PutMapping("/items/{id}")
     fun update(@PathVariable(value = "id") itemId: Long,
-               @Valid @RequestBody newItem: Item): ResponseEntity<Item> =
-        itemRepository.findById(itemId).map { existingItem ->
-            val updatedItem: Item = existingItem.copy(name = newItem.name)
-            ResponseEntity.ok().body(itemRepository.save(updatedItem))
-        }.orElse(ResponseEntity.notFound().build())
+               @Valid @RequestBody newItem: PutItem): ResponseEntity<Item> {
+        val item = itemRepository.findByIdOrNull(itemId)  ?: return ResponseEntity.notFound().build()
+        val type = typeRepository.findByIdOrNull(newItem.type_id) ?: return ResponseEntity.notFound().build()
+        return ResponseEntity.ok().body(itemRepository.save(Item(
+                name = newItem.name,
+                type = type
+        )))
+    }
 
     @DeleteMapping("/items/{id}")
     fun delete(@PathVariable(value = "id") itemId: Long): ResponseEntity<Void> =

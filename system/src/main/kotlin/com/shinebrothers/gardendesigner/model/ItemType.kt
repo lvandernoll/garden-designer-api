@@ -2,25 +2,13 @@ package com.shinebrothers.gardendesigner.model
 
 import javax.persistence.*
 import javax.validation.constraints.NotBlank
-import javax.validation.constraints.NotNull
 
 @Entity
-data class Item (
+data class ItemType (
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
 
     @get: NotBlank
-    val name: String = "",
-
-    @ManyToOne
-    val type: ItemType
-)
-
-class PutItem (
-    @get: NotBlank
-    val name: String = "",
-
-    @get: NotNull
-    val type_id: Long
+    val name: String = ""
 )

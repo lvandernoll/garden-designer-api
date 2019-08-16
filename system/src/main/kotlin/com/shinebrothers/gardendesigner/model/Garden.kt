@@ -1,10 +1,6 @@
 package com.shinebrothers.gardendesigner.model
 
-import javax.persistence.Entity
-import javax.persistence.GeneratedValue
-import javax.persistence.GenerationType
-import javax.persistence.OneToMany
-import javax.persistence.Id
+import javax.persistence.*
 import javax.validation.constraints.NotBlank
 
 @Entity
