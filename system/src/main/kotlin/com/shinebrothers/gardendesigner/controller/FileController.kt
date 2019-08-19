@@ -1,13 +1,17 @@
 package com.shinebrothers.gardendesigner.controller
 
 import com.shinebrothers.gardendesigner.exception.FileStorageException
+import com.shinebrothers.gardendesigner.model.FileInfo
 import com.shinebrothers.gardendesigner.payload.UploadFileResponse
+import com.shinebrothers.gardendesigner.repository.FileInfoRepository
 import com.shinebrothers.gardendesigner.service.FileStorageService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.Resource
+import org.springframework.data.jpa.domain.AbstractPersistable_.id
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -15,12 +19,11 @@ import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import javax.servlet.http.HttpServletRequest
 import java.io.IOException
-import java.util.Arrays
-import java.util.stream.Collectors
+import javax.xml.ws.Response
 
 @RestController
 @RequestMapping("/api")
-class FileController {
+class FileController(private val fileInfoRepository: FileInfoRepository) {
 
     @Autowired
     private val fileStorageService: FileStorageService? = null
@@ -30,24 +33,24 @@ class FileController {
         val fileName = fileStorageService!!.storeFile(file)
 
         val fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
-            .path("/downloadFile/")
+            .path("/api/files/")
             .path(fileName)
             .toUriString()
 
         val fileContentType = file.contentType ?: throw FileStorageException("File has no content type")
 
-        return UploadFileResponse(fileName, fileDownloadUri, fileContentType, file.size)
+        val fileInfo = fileInfoRepository.save(FileInfo(fileName = fileName))
+
+        return UploadFileResponse(fileInfo.id, fileName, fileDownloadUri, fileContentType, file.size)
     }
 
     @GetMapping("/files/{fileName:.+}")
     fun downloadFile(@PathVariable fileName: String, request: HttpServletRequest): ResponseEntity<Resource> {
-        // Load file as Resource
         val resource = fileStorageService!!.loadFileAsResource(fileName)
 
-        // Try to determine file's content type
         var contentType: String? = null
         try {
-            contentType = request.servletContext.getMimeType(resource.getFile().getAbsolutePath())
+            contentType = request.servletContext.getMimeType(resource.file.absolutePath)
         } catch (ex: IOException) {
             logger.info("Could not determine file type.")
         }
@@ -59,9 +62,21 @@ class FileController {
 
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType(contentType))
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.filename + "\"")
             .body(resource)
     }
+
+    @GetMapping("/files")
+    fun all(): List<FileInfo> =
+        fileInfoRepository.findAll()
+
+    @DeleteMapping("/files/{id}")
+    fun deleteFile(@PathVariable id: Long): ResponseEntity<Void> =
+        fileInfoRepository.findById(id).map {
+            fileStorageService!!.deleteFile(it.fileName)
+            fileInfoRepository.delete(it)
+            ResponseEntity<Void>(HttpStatus.OK)
+        }.orElse(ResponseEntity.notFound().build())
 
     companion object {
         private val logger = LoggerFactory.getLogger(FileController::class.java)

@@ -1,3 +1,3 @@
 package com.shinebrothers.gardendesigner.payload
 
-class UploadFileResponse(private val fileName: String, private val fileDownloadUri: String, private val fileType: String, private val size: Long)
+class UploadFileResponse(val id: Long, val fileName: String, val fileDownloadUri: String, val fileType: String, val size: Long)
