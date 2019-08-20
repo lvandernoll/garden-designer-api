@@ -2,14 +2,11 @@ package com.shinebrothers.gardendesigner.controller
 
 import com.shinebrothers.gardendesigner.exception.FileStorageException
 import com.shinebrothers.gardendesigner.model.FileInfo
-import com.shinebrothers.gardendesigner.payload.UploadFileResponse
 import com.shinebrothers.gardendesigner.repository.FileInfoRepository
 import com.shinebrothers.gardendesigner.service.FileStorageService
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.Resource
-import org.springframework.data.jpa.domain.AbstractPersistable_.id
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -19,7 +16,6 @@ import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import javax.servlet.http.HttpServletRequest
 import java.io.IOException
-import javax.xml.ws.Response
 
 @RestController
 @RequestMapping("/api")
@@ -29,19 +25,17 @@ class FileController(private val fileInfoRepository: FileInfoRepository) {
     private val fileStorageService: FileStorageService? = null
 
     @PostMapping("/files")
-    fun uploadFile(@RequestParam("file") file: MultipartFile): UploadFileResponse {
+    fun uploadFile(@RequestParam("file") file: MultipartFile): FileInfo {
         val fileName = fileStorageService!!.storeFile(file)
 
         val fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
-            .path("/api/files/")
-            .path(fileName)
-            .toUriString()
+                .path("/api/files/")
+                .path(fileName)
+                .toUriString()
 
         val fileContentType = file.contentType ?: throw FileStorageException("File has no content type")
 
-        val fileInfo = fileInfoRepository.save(FileInfo(fileName = fileName))
-
-        return UploadFileResponse(fileInfo.id, fileName, fileDownloadUri, fileContentType, file.size)
+        return fileInfoRepository.save(FileInfo(fileName = fileName))
     }
 
     @GetMapping("/files/{fileName:.+}")

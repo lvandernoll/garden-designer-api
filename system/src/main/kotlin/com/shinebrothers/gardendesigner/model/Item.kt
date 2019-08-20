@@ -14,7 +14,10 @@ data class Item (
     val name: String = "",
 
     @ManyToOne
-    val type: ItemType
+    val type: ItemType,
+
+    @ManyToOne
+    val image: FileInfo
 )
 
 class PutItem (
@@ -22,5 +25,8 @@ class PutItem (
     val name: String = "",
 
     @get: NotNull
-    val type_id: Long
+    val type_id: Long,
+
+    @get: NotNull
+    val image_id: Long
 )
